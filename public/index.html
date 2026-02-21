@@ -235,62 +235,62 @@
   .q-hint-text { font-size: 12px; padding: 8px 12px; border-radius: 7px; display: none; background: rgba(180,127,255,0.1); border: 1px solid rgba(180,127,255,0.25); color: #b47fff; font-style: italic; margin-top: 8px; }
   .q-hint-text.show { display: block; }
   .q-card.done .q-body { cursor: default; }
-
-  /* ── CORRECT ANSWER EXPLOSION ── */
+  /* ── CORRECT ANSWER BLAST ── */
   #blast-canvas {
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 99999;
+    width: 100%;
+    height: 100%;
   }
-
   .correct-flash {
     animation: correctFlash 0.5s ease forwards;
   }
   @keyframes correctFlash {
     0%   { box-shadow: 0 0 0px 0px rgba(71,200,255,0); }
-    30%  { box-shadow: 0 0 40px 10px rgba(71,200,255,0.5), 0 0 80px 20px rgba(232,255,71,0.3); }
+    40%  { box-shadow: 0 0 40px 12px rgba(71,200,255,0.55), 0 0 80px 24px rgba(232,255,71,0.3); }
     100% { box-shadow: 0 0 0px 0px rgba(71,200,255,0); }
   }
-
   .correct-stamp {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0);
     z-index: 99998;
-    font-size: 80px;
+    font-size: 90px;
     pointer-events: none;
-    animation: stampIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    text-shadow: 0 0 40px rgba(71,200,255,0.8), 0 0 80px rgba(232,255,71,0.5);
-    filter: drop-shadow(0 0 20px #47c8ff);
+    animation: stampIn 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    color: #47c8ff;
+    filter: drop-shadow(0 0 24px #47c8ff) drop-shadow(0 0 60px #e8ff47);
   }
   @keyframes stampIn {
-    0%   { transform: translate(-50%, -50%) scale(0) rotate(-15deg); opacity: 0; }
-    60%  { transform: translate(-50%, -50%) scale(1.2) rotate(5deg); opacity: 1; }
-    80%  { transform: translate(-50%, -50%) scale(0.95) rotate(-2deg); opacity: 1; }
+    0%   { transform: translate(-50%, -50%) scale(0) rotate(-20deg); opacity: 0; }
+    55%  { transform: translate(-50%, -50%) scale(1.25) rotate(6deg); opacity: 1; }
+    75%  { transform: translate(-50%, -50%) scale(0.92) rotate(-3deg); opacity: 1; }
+    88%  { transform: translate(-50%, -50%) scale(1.05) rotate(1deg); opacity: 1; }
     100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0; }
   }
-
   .score-popup {
     position: fixed;
     pointer-events: none;
     z-index: 99998;
     font-family: 'Inter', sans-serif;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 800;
     color: #e8ff47;
-    text-shadow: 0 0 20px rgba(232,255,71,0.8);
-    animation: scoreFloat 1.2s ease forwards;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 20px rgba(232,255,71,0.9);
+    animation: scoreFloat 1.3s ease forwards;
     white-space: nowrap;
   }
   @keyframes scoreFloat {
-    0%   { opacity: 0; transform: translateY(0) scale(0.5); }
-    20%  { opacity: 1; transform: translateY(-20px) scale(1.1); }
-    80%  { opacity: 1; transform: translateY(-80px) scale(1); }
-    100% { opacity: 0; transform: translateY(-110px) scale(0.9); }
+    0%   { opacity: 0; transform: translateY(0px) scale(0.6); }
+    15%  { opacity: 1; transform: translateY(-15px) scale(1.15); }
+    75%  { opacity: 1; transform: translateY(-75px) scale(1); }
+    100% { opacity: 0; transform: translateY(-105px) scale(0.85); }
   }
-
+</style>
 </head>
 <body>
 <canvas id="blast-canvas"></canvas>
@@ -460,140 +460,6 @@
 </div>
 
 <script>
-// ── BLAST ANIMATION ───────────────────────────────────────────────
-const blastCanvas = document.getElementById('blast-canvas');
-const blastCtx = blastCanvas.getContext('2d');
-let particles = [];
-let blastRAF = null;
-
-function resizeBlastCanvas() {
-  blastCanvas.width = window.innerWidth;
-  blastCanvas.height = window.innerHeight;
-}
-resizeBlastCanvas();
-window.addEventListener('resize', resizeBlastCanvas);
-
-const BLAST_COLORS = ['#e8ff47','#47c8ff','#ff5c87','#b47fff','#ffffff','#ffb347','#47ffb3'];
-
-function randomBetween(a, b) { return a + Math.random() * (b - a); }
-
-function createParticles(x, y) {
-  const count = 120;
-  for (let i = 0; i < count; i++) {
-    const angle = (Math.PI * 2 / count) * i + randomBetween(-0.3, 0.3);
-    const speed = randomBetween(3, 18);
-    const size  = randomBetween(4, 11);
-    const color = BLAST_COLORS[Math.floor(Math.random() * BLAST_COLORS.length)];
-    const shape = Math.random() < 0.4 ? 'circle' : Math.random() < 0.6 ? 'rect' : 'star';
-    particles.push({
-      x, y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - randomBetween(2, 6),
-      size, color, shape,
-      life: 1,
-      decay: randomBetween(0.012, 0.028),
-      rotation: randomBetween(0, Math.PI * 2),
-      rotSpeed: randomBetween(-0.2, 0.2),
-      gravity: randomBetween(0.25, 0.55),
-    });
-  }
-  for (let i = 0; i < 30; i++) {
-    const angle = randomBetween(-Math.PI * 0.9, -Math.PI * 0.1);
-    const speed = randomBetween(8, 22);
-    particles.push({
-      x, y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      size: randomBetween(2, 5),
-      color: Math.random() < 0.5 ? '#e8ff47' : '#ffffff',
-      shape: 'circle',
-      life: 1,
-      decay: randomBetween(0.018, 0.035),
-      rotation: 0, rotSpeed: 0,
-      gravity: randomBetween(0.3, 0.6),
-    });
-  }
-}
-
-function drawStar(ctx, x, y, size) {
-  const spikes = 5, outer = size, inner = size * 0.4;
-  ctx.beginPath();
-  for (let i = 0; i < spikes * 2; i++) {
-    const r = i % 2 === 0 ? outer : inner;
-    const angle = (Math.PI / spikes) * i - Math.PI / 2;
-    i === 0 ? ctx.moveTo(x + r * Math.cos(angle), y + r * Math.sin(angle))
-            : ctx.lineTo(x + r * Math.cos(angle), y + r * Math.sin(angle));
-  }
-  ctx.closePath();
-  ctx.fill();
-}
-
-function animateBlast() {
-  blastCtx.clearRect(0, 0, blastCanvas.width, blastCanvas.height);
-  particles = particles.filter(p => p.life > 0);
-  for (const p of particles) {
-    blastCtx.save();
-    blastCtx.globalAlpha = Math.max(0, p.life);
-    blastCtx.fillStyle = p.color;
-    blastCtx.shadowBlur = 10;
-    blastCtx.shadowColor = p.color;
-    blastCtx.translate(p.x, p.y);
-    blastCtx.rotate(p.rotation);
-    if (p.shape === 'circle') {
-      blastCtx.beginPath();
-      blastCtx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
-      blastCtx.fill();
-    } else if (p.shape === 'rect') {
-      blastCtx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
-    } else {
-      drawStar(blastCtx, 0, 0, p.size / 2);
-    }
-    blastCtx.restore();
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += p.gravity;
-    p.vx *= 0.98;
-    p.rotation += p.rotSpeed;
-    p.life -= p.decay;
-  }
-  if (particles.length > 0) {
-    blastRAF = requestAnimationFrame(animateBlast);
-  } else {
-    blastCtx.clearRect(0, 0, blastCanvas.width, blastCanvas.height);
-    blastRAF = null;
-  }
-}
-
-function triggerBlast(cardEl) {
-  const rect = cardEl.getBoundingClientRect();
-  const x = rect.left + rect.width / 2;
-  const y = rect.top + rect.height / 2;
-
-  cardEl.classList.add('correct-flash');
-  setTimeout(() => cardEl.classList.remove('correct-flash'), 600);
-
-  const stamp = document.createElement('div');
-  stamp.className = 'correct-stamp';
-  stamp.textContent = '✓';
-  document.body.appendChild(stamp);
-  setTimeout(() => stamp.remove(), 900);
-
-  const msgs = ['+1 ✦', 'CORRECT!', 'NICE ONE!', 'BOOM! 🔥', 'NAILED IT!'];
-  const popup = document.createElement('div');
-  popup.className = 'score-popup';
-  popup.textContent = msgs[Math.floor(Math.random() * msgs.length)];
-  popup.style.left = (x - 50) + 'px';
-  popup.style.top  = (y - 20) + 'px';
-  document.body.appendChild(popup);
-  setTimeout(() => popup.remove(), 1300);
-
-  createParticles(x, y);
-  setTimeout(() => createParticles(x + randomBetween(-60, 60), y + randomBetween(-40, 40)), 120);
-  setTimeout(() => createParticles(x + randomBetween(-80, 80), y + randomBetween(-50, 50)), 260);
-
-  if (!blastRAF) blastRAF = requestAnimationFrame(animateBlast);
-}
-
 // ── AUTH ──────────────────────────────────────────────────────
 let currentUser = null;
 
@@ -1228,7 +1094,6 @@ async function submitAnswer(questionId) {
         if (check) { check.style.background = '#47c8ff'; check.style.borderColor = '#47c8ff'; }
         const checkInner = card.querySelector('.q-check-inner');
         if (checkInner) checkInner.style.opacity = '1';
-        // 🎉 TRIGGER BLAST!
         triggerBlast(card);
       }
 
@@ -1319,6 +1184,128 @@ document.getElementById('app').style.display = 'none';
 // Allow pressing Enter in auth fields
 document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 document.getElementById('login-username').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ── BLAST ANIMATION ENGINE ────────────────────────────────────────
+(function() {
+  var canvas = document.getElementById('blast-canvas');
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  var raf = null;
+  var COLORS = ['#e8ff47','#47c8ff','#ff5c87','#b47fff','#ffffff','#ffb347','#47ffb3'];
+
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+
+  function burst(x, y) {
+    for (var i = 0; i < 130; i++) {
+      var angle = (Math.PI * 2 / 130) * i + rnd(-0.25, 0.25);
+      var speed = rnd(3, 17);
+      particles.push({
+        x: x, y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - rnd(1, 5),
+        size: rnd(4, 12),
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        shape: Math.random() < 0.4 ? 0 : Math.random() < 0.6 ? 1 : 2,
+        life: 1,
+        decay: rnd(0.012, 0.03),
+        rot: rnd(0, Math.PI * 2),
+        rotV: rnd(-0.18, 0.18),
+        grav: rnd(0.25, 0.5)
+      });
+    }
+    for (var j = 0; j < 28; j++) {
+      var a2 = rnd(-Math.PI * 0.85, -Math.PI * 0.15);
+      var s2 = rnd(7, 20);
+      particles.push({
+        x: x, y: y,
+        vx: Math.cos(a2) * s2, vy: Math.sin(a2) * s2,
+        size: rnd(2, 5),
+        color: Math.random() < 0.5 ? '#e8ff47' : '#ffffff',
+        shape: 0, life: 1, decay: rnd(0.018, 0.036),
+        rot: 0, rotV: 0, grav: rnd(0.3, 0.55)
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(loop);
+  }
+
+  function star(ctx, x, y, r) {
+    var inner = r * 0.4;
+    ctx.beginPath();
+    for (var i = 0; i < 10; i++) {
+      var rad = i % 2 === 0 ? r : inner;
+      var a = (Math.PI / 5) * i - Math.PI / 2;
+      i === 0 ? ctx.moveTo(x + rad * Math.cos(a), y + rad * Math.sin(a))
+              : ctx.lineTo(x + rad * Math.cos(a), y + rad * Math.sin(a));
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles = particles.filter(function(p) { return p.life > 0; });
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = p.color;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      if (p.shape === 0) {
+        ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2); ctx.fill();
+      } else if (p.shape === 1) {
+        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      } else {
+        star(ctx, 0, 0, p.size / 2);
+      }
+      ctx.restore();
+      p.x += p.vx; p.y += p.vy;
+      p.vy += p.grav; p.vx *= 0.98;
+      p.rot += p.rotV; p.life -= p.decay;
+    }
+    if (particles.length > 0) { raf = requestAnimationFrame(loop); }
+    else { ctx.clearRect(0, 0, canvas.width, canvas.height); raf = null; }
+  }
+
+  window.triggerBlast = function(cardEl) {
+    var rect = cardEl.getBoundingClientRect();
+    var x = rect.left + rect.width / 2;
+    var y = rect.top + rect.height / 2;
+
+    // Card flash
+    cardEl.classList.add('correct-flash');
+    setTimeout(function() { cardEl.classList.remove('correct-flash'); }, 600);
+
+    // Stamp
+    var stamp = document.createElement('div');
+    stamp.className = 'correct-stamp';
+    stamp.textContent = '✓';
+    document.body.appendChild(stamp);
+    setTimeout(function() { stamp.remove(); }, 950);
+
+    // Popup
+    var msgs = ['CORRECT! 🔥', 'NAILED IT!', 'BOOM! ✦', 'NICE ONE!', '+1 ⚡'];
+    var popup = document.createElement('div');
+    popup.className = 'score-popup';
+    popup.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+    popup.style.left = (x - 55) + 'px';
+    popup.style.top  = (y - 20) + 'px';
+    document.body.appendChild(popup);
+    setTimeout(function() { popup.remove(); }, 1400);
+
+    // Triple particle burst
+    burst(x, y);
+    setTimeout(function() { burst(x + rnd(-50, 50), y + rnd(-35, 35)); }, 110);
+    setTimeout(function() { burst(x + rnd(-70, 70), y + rnd(-45, 45)); }, 240);
+  };
+})();
+
 </script>
 </body>
 </html>
