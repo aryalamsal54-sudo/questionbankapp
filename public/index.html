@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Question Bank</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --border: #252525;
+    --accent: #e8ff47;
+    --accent2: #ff5c87;
+    --accent3: #47c8ff;
+    --accent4: #b47fff;
+    --text: #f0f0f0;
+    --muted: #585858;
+    --tag-bg: #1c1c1c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(232,255,71,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(232,255,71,0.03) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
+  }
+  .glow-orb { position: fixed; width: 500px; height: 500px; border-radius: 50%; filter: blur(120px); opacity: 0.10; pointer-events: none; z-index: 0; }
+  .glow-orb.a { background: #b47fff; top: -100px; right: -100px; }
+  .glow-orb.b { background: #ff5c87; bottom: -100px; left: -100px; }
+
+  header { position: relative; z-index: 10; padding: 40px 48px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #e8ff47; margin-bottom: 10px; font-family: 'Inter', sans-serif; }
+  h1 { font-family: 'Inter', sans-serif; font-size: clamp(32px, 5vw, 58px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+  h1 span { color: #e8ff47; }
+  .subtitle { margin-top: 8px; color: var(--muted); font-size: 12px; }
+  .stats { display: flex; gap: 28px; flex-wrap: wrap; }
+  .stat { text-align: right; }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800; color: var(--accent3); line-height: 1; }
+  .stat-num.ch { color: var(--accent2); }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+
+  .controls { position: sticky; top: 0; z-index: 10; padding: 14px 48px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: rgba(10,10,15,0.92); backdrop-filter: blur(12px); }
+  .search-wrap { position: relative; flex: 1; min-width: 180px; max-width: 360px; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 15px; pointer-events: none; }
+  input[type="text"] { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 12px 9px 36px; border-radius: 7px; outline: none; transition: border-color 0.2s; }
+  input[type="text"]:focus { border-color: #e8ff47; }
+  input[type="text"]::placeholder { color: var(--muted); }
+  .filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-btn { padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-family: 'Inter', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em; }
+  .filter-btn:hover { border-color: #e8ff47; color: var(--text); }
+  .filter-btn.active { background: #e8ff47; border-color: #e8ff47; color: #000000; }
+  .view-toggle { display: flex; gap: 4px; margin-left: auto; }
+  .view-btn { padding: 7px 11px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; transition: all 0.2s; }
+  .view-btn.active { background: #e8ff47; border-color: #e8ff47; color: #000000; }
+
+  .progress-bar-wrap { padding: 10px 48px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 14px; background: var(--bg); }
+  .progress-bar-bg { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #ff5c87, #b47fff, #47c8ff, #e8ff47); border-radius: 2px; transition: width 0.4s ease; }
+  .progress-text { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  .main { position: relative; z-index: 1; display: flex; min-height: calc(100vh - 220px); }
+
+  .sidebar { width: 250px; min-width: 250px; border-right: 1px solid var(--border); padding: 20px 0; position: sticky; top: 61px; height: calc(100vh - 61px); overflow-y: auto; }
+  .sidebar::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .sidebar-title { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); padding: 0 18px 10px; }
+  .chapter-nav-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 18px; cursor: pointer; transition: all 0.15s; border-left: 2px solid transparent; gap: 8px; }
+  .chapter-nav-item:hover { background: var(--surface); border-left-color: var(--accent); }
+  .chapter-nav-name { font-size: 12px; font-family: 'Inter', sans-serif; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chapter-nav-count { font-size: 10px; color: var(--muted); background: var(--border); padding: 2px 6px; border-radius: 999px; flex-shrink: 0; }
+
+  .content { flex: 1; padding: 28px 36px; overflow-y: auto; }
+
+  .chapter-block { margin-bottom: 44px; animation: fadeUp 0.35s ease both; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  .chapter-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .chapter-num { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #e8ff47; background: rgba(232,255,71,0.08); padding: 4px 10px; border-radius: 4px; border: 1px solid rgba(232,255,71,0.2); white-space: nowrap; }
+  .chapter-title { font-family: 'Inter', sans-serif; font-size: 19px; font-weight: 700; letter-spacing: -0.02em; flex: 1; }
+  .chapter-count-badge { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  .questions-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .questions-grid.two-col { grid-template-columns: repeat(2, 1fr); }
+
+  .q-card { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 16px 18px; display: flex; gap: 12px; transition: all 0.2s; position: relative; overflow: hidden; }
+  .q-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); opacity: 0; transition: opacity 0.2s; }
+  .q-card:hover { border-color: rgba(232,255,71,0.3); transform: translateX(2px); }
+  .q-card:hover::before { opacity: 1; }
+  .q-card.done { opacity: 0.45; }
+  .q-card.done::before { background: #47c8ff; opacity: 1; }
+
+  .q-num { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: #e8ff47; min-width: 28px; padding-top: 1px; flex-shrink: 0; }
+  .q-body { flex: 1; min-width: 0; }
+  .q-text { font-size: 13.5px; line-height: 1.75; color: var(--text); white-space: pre-wrap; word-break: break-word; font-family: 'Inter', sans-serif; }
+  .q-tags { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+  .q-tag { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; background: var(--tag-bg); border: 1px solid var(--border); color: var(--muted); }
+  .q-tag.code { color: #47c8ff; border-color: rgba(71,200,255,0.25); background: rgba(71,200,255,0.07); }
+  .q-tag.theory { color: #ff5c87; border-color: rgba(255,92,135,0.25); background: rgba(255,92,135,0.07); }
+  .q-tag.mcq { color: #b47fff; border-color: rgba(180,127,255,0.25); background: rgba(180,127,255,0.07); }
+  .q-tag.output { color: #e8ff47; border-color: rgba(232,255,71,0.25); background: rgba(232,255,71,0.07); }
+
+  .q-check { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 50%; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; }
+  .q-check:hover { border-color: #47c8ff; }
+  .q-card.done .q-check { background: #47c8ff; border-color: #47c8ff; }
+  .q-check-inner { font-size: 10px; color: var(--bg); opacity: 0; font-weight: 700; line-height: 1; pointer-events: none; }
+  .q-card.done .q-check-inner { opacity: 1; }
+
+  .no-results { text-align: center; padding: 60px; color: var(--muted); font-size: 13px; }
+
+  .add-btn { position: fixed; bottom: 28px; right: 28px; z-index: 100; background: #e8ff47; color: #000000; border: none; padding: 12px 22px; border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 28px rgba(232,255,71,0.25); transition: all 0.2s; display: flex; align-items: center; gap: 7px; }
+  .add-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(232,255,71,0.4); }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; width: 90%; max-width: 520px; transform: scale(0.95); transition: transform 0.2s; }
+  .modal-overlay.open .modal { transform: scale(1); }
+  .modal h2 { font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 18px; }
+  .form-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; display: block; font-family: 'Inter', sans-serif; }
+  textarea, select { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'Inter', sans-serif; font-size: 13px; padding: 10px; border-radius: 7px; outline: none; transition: border-color 0.2s; resize: vertical; }
+  textarea:focus, select:focus { border-color: #e8ff47; }
+  select option { background: var(--surface); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .btn { padding: 9px 18px; border-radius: 7px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+  .form-group { margin-bottom: 14px; }
+  .btn-primary { background: #e8ff47; color: #000000; }
+  .btn-primary:hover { opacity: 0.85; }
+
+  @media (max-width: 768px) {
+    header { padding: 20px 20px 16px; }
+    .controls { padding: 10px 20px; }
+    .sidebar { display: none; }
+    .content { padding: 16px 20px; }
+    .progress-bar-wrap { padding: 8px 20px; }
+    .questions-grid.two-col { grid-template-columns: 1fr; }
+  }
+
+  /* ── AUTH SCREEN ── */
+  .auth-screen { position: fixed; inset: 0; z-index: 9999; background: #0d0d0d; display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; }
+  .auth-screen::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(232,255,71,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(232,255,71,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; }
+  .auth-glow-a { position: absolute; width: 500px; height: 500px; border-radius: 50%; filter: blur(120px); opacity: 0.12; background: #b47fff; top: -100px; right: -100px; pointer-events: none; }
+  .auth-glow-b { position: absolute; width: 500px; height: 500px; border-radius: 50%; filter: blur(120px); opacity: 0.12; background: #ff5c87; bottom: -100px; left: -100px; pointer-events: none; }
+  .auth-box { position: relative; z-index: 1; background: #141414; border: 1px solid #252525; border-radius: 20px; padding: 40px; width: 90%; max-width: 420px; animation: fadeUp 0.4s ease both; }
+  .auth-logo { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #e8ff47; margin-bottom: 8px; }
+  .auth-title { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: #f0f0f0; margin-bottom: 4px; }
+  .auth-title span { color: #e8ff47; }
+  .auth-subtitle { font-size: 13px; color: #585858; margin-bottom: 28px; }
+  .auth-field { margin-bottom: 14px; }
+  .auth-field label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #585858; margin-bottom: 6px; }
+  .auth-field input { width: 100%; background: #0d0d0d; border: 1px solid #252525; color: #f0f0f0; font-family: 'Inter', sans-serif; font-size: 14px; padding: 11px 14px; border-radius: 9px; outline: none; transition: border-color 0.2s; }
+  .auth-field input:focus { border-color: #e8ff47; }
+  .auth-field input::placeholder { color: #383838; }
+  .auth-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .auth-username-preview { background: #1c1c1c; border: 1px solid #252525; border-radius: 9px; padding: 10px 14px; font-size: 13px; color: #585858; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .auth-username-preview span { color: #e8ff47; font-weight: 600; }
+  .auth-btn { width: 100%; background: #e8ff47; color: #000; border: none; padding: 13px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 6px; box-shadow: 0 6px 24px rgba(232,255,71,0.2); }
+  .auth-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .auth-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .auth-switch { text-align: center; margin-top: 18px; font-size: 13px; color: #585858; }
+  .auth-switch a { color: #e8ff47; cursor: pointer; text-decoration: none; font-weight: 600; }
+  .auth-switch a:hover { text-decoration: underline; }
+  .auth-error { background: rgba(255,92,135,0.1); border: 1px solid rgba(255,92,135,0.3); color: #ff5c87; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; display: none; }
+  .auth-error.show { display: block; }
+
+  /* ── HEADER NAV ADDITIONS ── */
+  .nav-user { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .nav-username { font-size: 12px; color: var(--muted); }
+  .nav-username strong { color: #e8ff47; }
+  .nav-tab-btns { display: flex; gap: 4px; }
+  .nav-tab { padding: 7px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-family: 'Inter', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s; font-weight: 500; }
+  .nav-tab:hover { border-color: #e8ff47; color: var(--text); }
+  .nav-tab.active { background: #e8ff47; border-color: #e8ff47; color: #000; font-weight: 700; }
+  .logout-btn { padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'Inter', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+  .logout-btn:hover { border-color: #ff5c87; color: #ff5c87; }
+
+  /* ── LEADERBOARD ── */
+  #leaderboard-view { display: none; padding: 36px 48px; position: relative; z-index: 1; min-height: 60vh; }
+  .lb-header { margin-bottom: 32px; }
+  .lb-title { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; }
+  .lb-title span { color: #e8ff47; }
+  .lb-subtitle { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .lb-podium { display: flex; align-items: flex-end; justify-content: center; gap: 20px; margin-bottom: 36px; flex-wrap: wrap; }
+  .lb-podium-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .lb-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #000; flex-shrink: 0; }
+  .lb-avatar.rank1 { background: #e8ff47; width: 64px; height: 64px; font-size: 22px; }
+  .lb-avatar.rank2 { background: #47c8ff; }
+  .lb-avatar.rank3 { background: #ff5c87; }
+  .lb-podium-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; }
+  .lb-podium-score { font-size: 12px; color: var(--muted); }
+  .lb-podium-bar { border-radius: 8px 8px 0 0; width: 76px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .lb-podium-bar.rank1 { background: rgba(232,255,71,0.12); border: 1px solid rgba(232,255,71,0.25); height: 96px; }
+  .lb-podium-bar.rank2 { background: rgba(71,200,255,0.08); border: 1px solid rgba(71,200,255,0.2); height: 68px; }
+  .lb-podium-bar.rank3 { background: rgba(255,92,135,0.08); border: 1px solid rgba(255,92,135,0.2); height: 50px; }
+  .lb-table { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .lb-row { display: grid; grid-template-columns: 44px 1fr 90px 90px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); transition: background 0.15s; gap: 8px; }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-row:hover { background: #1c1c1c; }
+  .lb-row.me { background: rgba(232,255,71,0.04); border-left: 3px solid #e8ff47; padding-left: 17px; }
+  .lb-row.lb-head { background: #1a1a1a; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 10px 20px; }
+  .lb-rank { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .lb-rank.top1 { color: #e8ff47; }
+  .lb-rank.top2 { color: #47c8ff; }
+  .lb-rank.top3 { color: #ff5c87; }
+  .lb-name-cell { min-width: 0; }
+  .lb-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .lb-uname { font-size: 11px; color: var(--muted); }
+  .lb-cell { font-size: 13px; text-align: right; color: var(--muted); }
+  .lb-cell.score { color: #e8ff47; font-weight: 700; font-size: 15px; }
+  .lb-pct-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+  .lb-pct-fill { height: 100%; background: linear-gradient(90deg, #ff5c87, #b47fff, #47c8ff, #e8ff47); border-radius: 2px; }
+  .lb-empty { text-align: center; padding: 60px; color: var(--muted); font-size: 14px; }
+  .lb-refresh { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+  .lb-refresh-btn { padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: 'Inter', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+  .lb-refresh-btn:hover { border-color: #47c8ff; color: #47c8ff; }
+
+  #questions-view { display: block; }
+
+  /* ── AI GRADING ── */
+  .q-body { cursor: pointer; }
+  .q-answer-box { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .q-answer-box.open { display: block; animation: fadeUp 0.2s ease both; }
+  .q-answer-hint { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .q-textarea { width: 100%; background: #0d0d0d; border: 1px solid var(--border); color: var(--text); font-family: 'Inter', sans-serif; font-size: 13px; line-height: 1.6; padding: 10px 12px; border-radius: 8px; outline: none; resize: vertical; min-height: 90px; transition: border-color 0.2s; }
+  .q-textarea:focus { border-color: #e8ff47; }
+  .q-textarea::placeholder { color: #383838; }
+  .q-answer-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .q-submit-btn { padding: 8px 18px; background: #e8ff47; color: #000; border: none; border-radius: 7px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+  .q-submit-btn:hover:not(:disabled) { opacity: 0.85; }
+  .q-submit-btn:disabled { opacity: 0.45; cursor: not-allowed; background: var(--border); color: var(--muted); }
+  .q-feedback { font-size: 12px; padding: 8px 12px; border-radius: 7px; font-weight: 500; display: none; }
+  .q-feedback.correct { display: block; background: rgba(71,200,255,0.1); border: 1px solid rgba(71,200,255,0.25); color: #47c8ff; }
+  .q-feedback.incorrect { display: block; background: rgba(255,92,135,0.1); border: 1px solid rgba(255,92,135,0.25); color: #ff5c87; }
+  .q-hint-text { font-size: 12px; padding: 8px 12px; border-radius: 7px; display: none; background: rgba(180,127,255,0.1); border: 1px solid rgba(180,127,255,0.25); color: #b47fff; font-style: italic; margin-top: 8px; }
+  .q-hint-text.show { display: block; }
+  .q-card.done .q-body { cursor: default; }</style>
+</head>
+<body>
+
+<!-- ── AUTH SCREEN ── -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-glow-a"></div>
+  <div class="auth-glow-b"></div>
+  <div class="auth-box" id="auth-box">
+    <!-- LOGIN VIEW -->
+    <div id="view-login">
+      <div class="auth-logo">// Question Bank</div>
+      <div class="auth-title">Welcome <span>Back</span></div>
+      <div class="auth-subtitle">Sign in to continue studying</div>
+      <div class="auth-error" id="login-error"></div>
+      <div class="auth-field">
+        <label>Username</label>
+        <input type="text" id="login-username" placeholder="lastname_firstname" autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="auth-btn" onclick="doLogin()">Sign In</button>
+      <div class="auth-switch">Don't have an account? <a onclick="showSignup()">Sign up</a></div>
+    </div>
+    <!-- SIGNUP VIEW -->
+    <div id="view-signup" style="display:none">
+      <div class="auth-logo">// Question Bank</div>
+      <div class="auth-title">Create <span>Account</span></div>
+      <div class="auth-subtitle">Join and track your progress on the leaderboard</div>
+      <div class="auth-error" id="signup-error"></div>
+      <div class="auth-row">
+        <div class="auth-field">
+          <label>First Name</label>
+          <input type="text" id="signup-firstname" placeholder="Aarav" oninput="updateUsernamePreview()">
+        </div>
+        <div class="auth-field">
+          <label>Last Name</label>
+          <input type="text" id="signup-lastname" placeholder="Sharma" oninput="updateUsernamePreview()">
+        </div>
+      </div>
+      <div class="auth-username-preview" id="username-preview">
+        Your username will be: <span id="preview-username">lastname_firstname</span>
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="signup-password" placeholder="Min. 6 characters" autocomplete="new-password">
+      </div>
+      <div class="auth-field">
+        <label>Confirm Password</label>
+        <input type="password" id="signup-confirm" placeholder="Repeat password" autocomplete="new-password">
+      </div>
+      <button class="auth-btn" onclick="doSignup()">Create Account</button>
+      <div class="auth-switch">Already have an account? <a onclick="showLogin()">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app" style="display:none">
+<div class="glow-orb a"></div>
+<div class="glow-orb b"></div>
+
+<header>
+  <div class="header-left">
+    <div class="label">// QUESTION BANK</div>
+    <h1>Study <span>Questions</span></h1>
+    <div class="subtitle">Computer Programming · All Chapters</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div class="nav-user">
+      <span class="nav-username">Logged in as <strong id="display-username"></strong></span>
+    </div>
+    <div class="nav-tab-btns">
+      <button class="nav-tab active" id="tab-questions" onclick="switchTab('questions')">📚 Questions</button>
+      <button class="nav-tab" id="tab-leaderboard" onclick="switchTab('leaderboard')">🏆 Leaderboard</button>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+  </div>
+</header>
+
+<!-- QUESTIONS VIEW -->
+<div id="questions-view">
+  <div class="stats" style="padding: 16px 48px; border-bottom: 1px solid var(--border); display:flex; gap:28px; flex-wrap:wrap;">
+    <div class="stat"><div class="stat-num" id="total-count">0</div><div class="stat-label">Total Qs</div></div>
+    <div class="stat"><div class="stat-num" id="done-count" style="color:#47c8ff">0</div><div class="stat-label">Done</div></div>
+    <div class="stat"><div class="stat-num ch" id="chapter-count" style="color:#ff5c87">0</div><div class="stat-label">Chapters</div></div>
+  </div>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="search-input" placeholder="Search questions...">
+    </div>
+    <div class="filter-btns">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="code">Code</button>
+      <button class="filter-btn" data-filter="theory">Theory</button>
+      <button class="filter-btn" data-filter="output">Output</button>
+      <button class="filter-btn" data-filter="mcq">MCQ</button>
+    </div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="view-1col">▤</button>
+      <button class="view-btn" id="view-2col">⊞</button>
+    </div>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+    <span class="progress-text" id="progress-text">0% complete</span>
+  </div>
+
+  <div class="main">
+    <nav class="sidebar">
+      <div class="sidebar-title">Chapters</div>
+      <div id="chapter-nav"></div>
+    </nav>
+    <div class="content" id="content"></div>
+  </div>
+
+  <button class="add-btn" onclick="openModal()"><span>＋</span> Add Question</button>
+</div>
+
+<!-- LEADERBOARD VIEW -->
+<div id="leaderboard-view">
+  <div class="lb-header">
+    <div class="lb-title">🏆 Leader<span>board</span></div>
+    <div class="lb-subtitle">Ranked by questions completed · Updates live</div>
+  </div>
+  <div class="lb-refresh">
+    <button class="lb-refresh-btn" onclick="loadLeaderboard()">↻ Refresh</button>
+  </div>
+  <div id="lb-podium" class="lb-podium"></div>
+  <div class="lb-table" id="lb-table">
+    <div class="lb-loading">Loading leaderboard...</div>
+  </div>
+</div>
+
+</div><!-- end #app -->
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2>Add Question</h2>
+    <div class="form-group">
+      <label class="form-label">Chapter</label>
+      <select id="modal-chapter"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Question</label>
+      <textarea id="modal-question" rows="4" placeholder="Type the question here..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <select id="modal-type">
+        <option value="theory">Theory</option>
+        <option value="code">Code</option>
+        <option value="output">Output</option>
+        <option value="mcq">MCQ</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addQuestion()">Add</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── AUTH ──────────────────────────────────────────────────────
+let currentUser = null;
+
+function updateUsernamePreview() {
+  const first = document.getElementById('signup-firstname').value.trim().toLowerCase().replace(/\s+/g,'');
+  const last = document.getElementById('signup-lastname').value.trim().toLowerCase().replace(/\s+/g,'');
+  const preview = last && first ? `${last}_${first}` : 'lastname_firstname';
+  document.getElementById('preview-username').textContent = preview;
+}
+
+function showSignup() {
+  document.getElementById('view-login').style.display = 'none';
+  document.getElementById('view-signup').style.display = 'block';
+}
+
+function showLogin() {
+  document.getElementById('view-signup').style.display = 'none';
+  document.getElementById('view-login').style.display = 'block';
+}
+
+function showAuthError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+async function doSignup() {
+  const first = document.getElementById('signup-firstname').value.trim();
+  const last = document.getElementById('signup-lastname').value.trim();
+  const pass = document.getElementById('signup-password').value;
+  const confirm = document.getElementById('signup-confirm').value;
+
+  if (!first || !last) return showAuthError('signup-error', 'Please enter your first and last name.');
+  if (pass.length < 6) return showAuthError('signup-error', 'Password must be at least 6 characters.');
+  if (pass !== confirm) return showAuthError('signup-error', 'Passwords do not match.');
+
+  const username = `${last.toLowerCase().replace(/\s+/g,'')}_${first.toLowerCase().replace(/\s+/g,'')}`;
+  const hashed = await hashPassword(pass);
+
+  const btn = document.querySelector('#view-signup .auth-btn');
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+
+  try {
+    const res = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, firstName: first, lastName: last, passwordHash: hashed }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showAuthError('signup-error', data.error || 'Signup failed. Try again.');
+    } else {
+      currentUser = { username, firstName: first, lastName: last };
+      enterApp();
+    }
+  } catch(e) {
+    showAuthError('signup-error', 'Could not connect to server. Try again.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+  }
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim().toLowerCase();
+  const pass = document.getElementById('login-password').value;
+
+  if (!username || !pass) return showAuthError('login-error', 'Please enter your username and password.');
+
+  const hashed = await hashPassword(pass);
+  const btn = document.querySelector('#view-login .auth-btn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, passwordHash: hashed }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showAuthError('login-error', data.error || 'Login failed. Try again.');
+    } else {
+      currentUser = { username: data.username, firstName: data.firstName, lastName: data.lastName, done: data.completedIds || [] };
+      enterApp();
+    }
+  } catch(e) {
+    showAuthError('login-error', 'Could not connect to server. Try again.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  showLogin();
+}
+
+function enterApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('display-username').textContent = currentUser.username;
+  // Load this user's done set
+  done = new Set(currentUser.done || []);
+  render();
+}
+
+async function hashPassword(pass) {
+  const enc = new TextEncoder().encode(pass + 'qbank_salt_2025');
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── SAVE PROGRESS ──────────────────────────────────────────────
+async function saveProgress() {
+  // Progress is saved to Neon via the grade function when answers are correct
+  // No local storage needed
+}
+
+// ── TABS ───────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('tab-questions').classList.toggle('active', tab === 'questions');
+  document.getElementById('tab-leaderboard').classList.toggle('active', tab === 'leaderboard');
+  document.getElementById('questions-view').style.display = tab === 'questions' ? 'block' : 'none';
+  document.getElementById('leaderboard-view').style.display = tab === 'leaderboard' ? 'block' : 'none';
+  if (tab === 'leaderboard') loadLeaderboard();
+}
+
+// ── LEADERBOARD ────────────────────────────────────────────────
+async function loadLeaderboard() {
+  document.getElementById('lb-table').innerHTML = '<div class="lb-loading" style="padding:40px;text-align:center;color:var(--muted)">Loading...</div>';
+  document.getElementById('lb-podium').innerHTML = '';
+
+  try {
+    const response = await fetch('/api/leaderboard');
+    if (!response.ok) throw new Error('Server error');
+    const rows = await response.json();
+
+    const users = rows.map(row => ({
+      username: row.username,
+      firstName: row.firstName || row.username,
+      lastName: row.lastName || '',
+      done: row.done,
+      pct: Math.round((row.done / data.length) * 100)
+    }));
+
+    renderLeaderboard(users);
+  } catch(e) {
+    document.getElementById('lb-table').innerHTML = '<div class="lb-empty" style="padding:60px;text-align:center;color:var(--muted)">Could not load leaderboard. Please try again.</div>';
+  }
+}
+
+function initials(u) {
+  return ((u.firstName||'?')[0] + (u.lastName||'?')[0]).toUpperCase();
+}
+
+function renderLeaderboard(users) {
+  if (!users.length) {
+    document.getElementById('lb-podium').innerHTML = '';
+    document.getElementById('lb-table').innerHTML = '<div class="lb-empty">No users yet. Be the first!</div>';
+    return;
+  }
+
+  // Podium (top 3)
+  const podiumOrder = [users[1], users[0], users[2]].filter(Boolean);
+  const podiumRanks = users[1] ? ['rank2','rank1','rank3'] : ['rank1'];
+  const podiumEmojis = users[1] ? ['🥈','🥇','🥉'] : ['🥇'];
+
+  document.getElementById('lb-podium').innerHTML = podiumOrder.map((u, i) => {
+    const rank = podiumRanks[i];
+    const emoji = podiumEmojis[i];
+    return `<div class="lb-podium-item">
+      <div class="lb-podium-name">${u.firstName} ${u.lastName}</div>
+      <div class="lb-podium-score">${u.done} done · ${u.pct}%</div>
+      <div class="lb-avatar ${rank}">${initials(u)}</div>
+      <div class="lb-podium-bar ${rank}">${emoji}</div>
+    </div>`;
+  }).join('');
+
+  // Table
+  const rows = users.map((u, i) => {
+    const isMe = currentUser && u.username === currentUser.username;
+    const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+    const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+    return `<div class="lb-row ${isMe ? 'me' : ''}">
+      <div class="lb-rank ${rankClass}">${rankIcon}</div>
+      <div class="lb-name-cell">
+        <div class="lb-name">${u.firstName} ${u.lastName} ${isMe ? '<span style="color:#e8ff47;font-size:10px;">(you)</span>' : ''}</div>
+        <div class="lb-uname">@${u.username}</div>
+        <div class="lb-pct-bar"><div class="lb-pct-fill" style="width:${u.pct}%"></div></div>
+      </div>
+      <div class="lb-cell">${u.pct}%</div>
+      <div class="lb-cell score">${u.done}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('lb-table').innerHTML = `
+    <div class="lb-row lb-head">
+      <div>Rank</div><div>Student</div><div style="text-align:right">Progress</div><div style="text-align:right">Done</div>
+    </div>${rows}`;
+}
+
+// ── QUESTION BANK DATA ─────────────────────────────────────────
+let data = [
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Explain Generation of computers with their characteristic.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Explain Programming language and its types.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Define Computer software with its type.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Explain Language processor. Difference Between Compiler and Interpreter.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Difference Between System and Application software.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write down some features of good computer program.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "List out the problem solving techniques.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: 'Explain algorithm. Define term "flowchart". Discuss about different symbols used in flowchart.', type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "What is debugging and explain types of error.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write an algorithm and flow chart to determine whether a number is palindrome or not.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write an algorithm and flow chart to determine whether a number is even or odd.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write algorithm and draw flowchart to add N natural numbers.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write algorithm and draw flowchart to check whether a number is exactly divisible by 5 but not by 7.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write algorithm and draw flowchart to find the largest of three different numbers.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write algorithm and draw flowchart for a program that calculates sum of digits of an integer numbers.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write algorithm and draw flowchart to find factorial of a positive number.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write an algorithm and flow chart to determine whether a number is prime or not.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Define a programming language and also explain its type.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "What is computer software and also explain its type?", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Discuss in brief about different generation of programming language.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Difference Between Compiler vs Interpreter and source code vs object code.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "What are the features of good computer program?", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "What is a Problem? What are basic steps in the process of Program Development? Explain each of them briefly.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Define algorithm and flowchart with its importance. What are the various symbols used to a flowchart?", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Differentiate between the flow chart and algorithm with the example.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "What is debugging?", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Why do we need documentation and testing for problem solving?", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write an algorithm and flow chart to determine whether a number is palindrome or not and also check that number is prime or not.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write algorithm and draw flowchart to find all roots of quadratic equations.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write algorithm and draw flowchart to find HCF & LCM of two positive numbers.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write algorithm and draw flowchart to find and print the term of Fibonacci sequence: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, ...", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "List out the problem-solving technique. Write down the guidelines to be followed to draw a flowchart.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Explain the program development and compilation process in detail.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Define algorithm, flowchart, debugging and error in program.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write an algorithm and flowchart to check whether a number is prime or not.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Write an algorithm and flowchart to calculate sum of digits of an integer.", type: "code" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: "Explain the program development or problem solving techniques in detail. What is debugging and explain types of error.", type: "theory" },
+  { chapter: "Chapter 1: Introduction to Computer Programming", q: 'Explain the algorithm with their properties. Define the term "flowchart". Discuss about different symbols used in the flow chart. Write down the guidelines to be followed to draw flowchart.', type: "theory" },
+
+  { chapter: "Chapter 2: Overview of C Programming", q: "C language is a middle level language. Explain this statement? Write down the importance of C.", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "Explain structure of C program with an appropriate example.", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "Give classification of C character set. State the rules for identifiers.", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "What are keywords in C? Explain basic data types along with their qualifiers.", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "Give classification of constants and explain them.", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "What is Escape Sequence? Write any four escape sequences with meaning and symbols.", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "What do you mean by macro expansion and file inclusion in C? Explain with example.", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "What are variables and how are they classified?", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "Explain identifier with its rule. What are the constants in C programming?", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "Explain keywords. Define preprocessor directives with its types and example.", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "Explain types of data type. What do you mean by local and global variable with suitable example?", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "Explain data type conversion. What do you mean by escape sequence? Explain with example.", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "State the rules for naming identifiers in C with example.", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "What are tokens and keywords in C?", type: "theory" },
+  { chapter: "Chapter 2: Overview of C Programming", q: "Explain datatype casting in C language. Are uppercase letters equivalent to lowercase letters? Justify the statement.", type: "theory" },
+
+  { chapter: "Chapter 3: Operators and Expressions", q: "What are the various types of operators used in C language?", type: "theory" },
+  { chapter: "Chapter 3: Operators and Expressions", q: "What are operators? Describe unary, binary and ternary operators with examples.", type: "theory" },
+  { chapter: "Chapter 3: Operators and Expressions", q: "What do you mean by precedence and associativity of an operator? Explain with suitable example.", type: "theory" },
+  { chapter: "Chapter 3: Operators and Expressions", q: "Find the value of a, b, c:\nint a=2, b=3, c;\na = (b++) + (++b) + a;\nc = a > b ? a : b;\nb = (a++) + (b--) + a;\nc = c++ + b--;", type: "output" },
+  { chapter: "Chapter 3: Operators and Expressions", q: "Determine the hierarchy of operations and evaluate the following expression, assuming i is an integer variable:\ni = 23/4 + 4/4 + 8 - 2 + 5/8", type: "output" },
+  { chapter: "Chapter 3: Operators and Expressions", q: "Explain working of the conditional and sizeof operators.", type: "theory" },
+  { chapter: "Chapter 3: Operators and Expressions", q: "What are expressions and operators? Describe unary, binary and ternary operators with examples.", type: "theory" },
+  { chapter: "Chapter 3: Operators and Expressions", q: "Explain difference between prefix and postfix increment and decrement in C with example.", type: "theory" },
+  { chapter: "Chapter 3: Operators and Expressions", q: "Find the value of a and c:\nint a, c = 5;\nfloat b = 3.456789;\na = b + 10;\nc = (int)b % 2;", type: "output" },
+  { chapter: "Chapter 3: Operators and Expressions", q: "Define Expression. Explain different types of operator with suitable example.", type: "theory" },
+  { chapter: "Chapter 3: Operators and Expressions", q: "Explain unary, binary and ternary operator with example.", type: "theory" },
+  { chapter: "Chapter 3: Operators and Expressions", q: "Explain conditional operator and bitwise operators with suitable example.", type: "theory" },
+
+  { chapter: "Chapter 4: Input and Output", q: "What is difference between formatted I/O and unformatted I/O?", type: "theory" },
+  { chapter: "Chapter 4: Input and Output", q: "Write the various input and output unformatted functions and describe any two.", type: "theory" },
+  { chapter: "Chapter 4: Input and Output", q: "What is the purpose of the printf() function? How is it used within a C program? Compare with the putchar().", type: "theory" },
+  { chapter: "Chapter 4: Input and Output", q: "What is the purpose of the scanf() function? How is it used within a C program? Compare with the getchar().", type: "theory" },
+  { chapter: "Chapter 4: Input and Output", q: 'Write output of the following:\n#include <stdio.h>\nint main() {\n  char s[] = "Computerprogram";\n  int g = 54;\n  float f = 9.81;\n  printf("%10d\\n", g);\n  printf("%7.3f\\n", f);\n  printf("%6.4s\\n", s);\n  return 0;\n}', type: "output" },
+  { chapter: "Chapter 4: Input and Output", q: 'Write down the output of the following program:\n#include<stdio.h>\nvoid main() {\n  int x = 544;\n  float y = 22.5;\n  char z[] = "cprogramming";\n  printf("%8d, %8.4f, %8s\\n", x, y, z);\n  printf("%2.6d, %6.1f, %8.4s\\n", x, y, z);\n}', type: "output" },
+  { chapter: "Chapter 4: Input and Output", q: "Write down the value of a, b, c for the following:\nint a=1, b=4, c;\na = (b++) + (++b) + a;\nc = a > b ? a : b;\nb = (a++) + (b--) + a;\nc = c++ + b--;", type: "output" },
+  { chapter: "Chapter 4: Input and Output", q: "Find the output of the following:\nint main() {\n  char str1, str2[] = {'P','R','O','G','R','A','M'};\n  scanf(\"%[A-Z]\", str1);\n  printf(\"%s\\n%0.5s\\n%6.4s\\n%-0.3s\\n\", str1, str2, str2, str2);\n  return 0;\n}\nInput: COMPutEr", type: "output" },
+  { chapter: "Chapter 4: Input and Output", q: "Explain formatted and unformatted I/O statements with suitable example of each statement.", type: "theory" },
+  { chapter: "Chapter 4: Input and Output", q: "Difference between formatted and unformatted I/O statements with their syntax and example.", type: "theory" },
+  { chapter: "Chapter 4: Input and Output", q: "Write syntax of gets(), putchar(), scanf(), getch().", type: "theory" },
+  { chapter: "Chapter 4: Input and Output", q: "What is the difference between getch and getche with syntax and example?", type: "theory" },
+  { chapter: "Chapter 4: Input and Output", q: "Can we use gets() function to input numerical data? Justify the answer.", type: "theory" },
+  { chapter: "Chapter 4: Input and Output", q: 'Write output of the following:\n#include <stdio.h>\nint main() {\n  char s[] = "Computerprogramming";\n  int g = 94;\n  float f = 3.71;\n  printf("%10d\\n", g);\n  printf("%7.3f\\n", f);\n  printf("%-7.3f\\n", f);\n  printf("%6.4s\\n", s);\n  return 0;\n}', type: "output" },
+
+  { chapter: "Chapter 5: Control Statements", q: "What is a control statement? Differentiate between do-while and while statement with the help of flow charts.", type: "theory" },
+  { chapter: "Chapter 5: Control Statements", q: "Explain looping control statements with their syntax and flowcharts.", type: "theory" },
+  { chapter: "Chapter 5: Control Statements", q: "Explain decision control statements with their syntax and flowcharts.", type: "theory" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP to input a number to check it is Armstrong or not.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "Describe the application of break and continue in C-programming. Explain with examples.", type: "theory" },
+  { chapter: "Chapter 5: Control Statements", q: "Write a menu driven program using switch statement having the following options:\nI. Addition\nII. Subtraction\nIII. Multiplication", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "Write a program to check the given number is prime or not.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "Write a program to check number is palindrome or not.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP to convert binary number into decimal number and vice versa.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP to print Fibonacci series up to Nth term.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP to find all the roots of quadratic equations.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "Write a program to check number is Armstrong or not.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "Write a program to calculate the HCF and LCM of two numbers.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP with algorithm and flow chart to determine whether a number is palindrome or not using do-while loop.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP with algorithm and flow chart to determine whether a number is Armstrong or not using while loop.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP with algorithm and draw flowchart to add N natural numbers using do-while loop.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP with algorithm and draw flowchart for a program that calculates sum of digits of an integer number using while loop.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP with algorithm and draw flowchart to find factorial of a positive number using for loop.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP with algorithm and draw flowchart to find and print the term of Fibonacci sequence: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, ...", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP with algorithm and draw flowchart to print following pattern using nested for loop:\n5\n5 4\n5 4 3\n5 4 3 2\n5 4 3 2 1", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP with an algorithm and flow chart to determine whether a number is even or odd using goto statement.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP algorithm and draw flowchart to check whether a number is exactly divisible by 5 but not by 7.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP algorithm and draw flowchart to find the largest of three different numbers using nested if-else statement.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP with algorithm and draw flowchart to find all roots of quadratic equations using if-else.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP with algorithm and draw flowchart to find HCF & LCM of two positive numbers.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP with algorithm and flow chart to determine whether a number is prime or not using if-else.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP to perform mathematical calculation using switch statement.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP to find whether the alphabet is vowel or consonant using switch statement.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "Explain Control statements with its syntax and flowcharts. Write the program to convert a decimal number into binary number.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "Difference between entry and exit loop. Write a program to calculate sum of the following series:\ny = x^1 + x^2 + x^3 + x^4 + ... + x^n\nwhere x and n are given by users.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "Explain the importance of break statement in switch with a suitable program. WAP to print following pattern:\nprogramming\nrogrammin\nogrammi\ngramm\nram\na", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "Difference between nested if-else and switch with syntax and flowchart. Write the program to find all possible roots of quadratic equation.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "Distinguish between break and continue statement with example. WAP to read the number until user says No. Also count the number of even and odd numbers entered by the user.", type: "code" },
+  { chapter: "Chapter 5: Control Statements", q: "What do you mean by control statements? Describe different control statements.", type: "theory" },
+  { chapter: "Chapter 5: Control Statements", q: "Describe the different types of looping statement used in C with flow chart.", type: "theory" },
+  { chapter: "Chapter 5: Control Statements", q: "Describe if-else statement.", type: "theory" },
+  { chapter: "Chapter 5: Control Statements", q: "In what way does switch statement differ from an if statement?", type: "theory" },
+  { chapter: "Chapter 5: Control Statements", q: "Explain nested if-else statement execution.", type: "theory" },
+  { chapter: "Chapter 5: Control Statements", q: "Write syntax for nested if-else statement.", type: "theory" },
+  { chapter: "Chapter 5: Control Statements", q: "WAP to print following pattern:\n1\n1 2 1\n1 2 3 2 1\n1 2 3 4 3 2 1\n1 2 3 4 5 4 3 2 1", type: "code" },
+
+  { chapter: "Chapter 6: Array, String and Pointer", q: "What is an array? What are the advantages of using array?", type: "theory" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a program to convert a lowercase character string into uppercase using array.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a program that reads a 3x3 matrix and finds the sum of all the elements, then print the sum.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write short note on String handling functions.", type: "theory" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to input two matrices of size m×n and p×q respectively, pass these matrices to a function to calculate the product. Display the product in the main() function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "How do you initialize a 2D array? Explain with example.", type: "theory" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to calculate the length of string without using string handling function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to check a string is palindrome or not without using string handling function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to read a string and rewrite its characters in alphabetical order.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "What is the relationship between arrays and pointers? Explain with example.", type: "theory" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a program to calculate sum of all numbers in a given matrix and also find the transpose of that matrix using pointer and function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "What is pointer arithmetic with example? How is a pointer variable different from an ordinary variable?", type: "theory" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a program to read n numbers and sort them in ascending order using DMA and function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write short notes on: Dynamic memory allocation.", type: "theory" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a function using pointers to add two matrices.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "What does p, &p and *p represent if 'p' is declared as an integer pointer?", type: "theory" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "What do you mean by generic pointer, null pointer and file pointer?", type: "theory" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: 'What are the advantages of using pointer in C programming? WAP in C to sort a string "exam" in descending order and display the sorted string using concept of pointer.', type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Define the following:\ni. int *p\nii. int p(char *a)\niii. int (*p(char *a))\niv. int *p(void)\nv. int *(*p)(char a)", type: "theory" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to sort n numbers in ascending order using function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to find the largest element of an array using function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to sum the diagonal elements of a square matrix of order n.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to read two matrices and multiply them if possible.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a program to find out the length of a given string without using the library function strlen().", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a program to print the reverse of a given string and check if a given string is palindrome or not using function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a program to count the number of vowels in a given string using function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to concatenate two given strings without using string handling functions.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to find the larger of two numbers using the concept of function and pointer.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to find out whether a given string is palindrome or not using pointer.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to swap two numbers using pointer and function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to reverse the array of elements using function and pointer.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to reverse a string using pointer.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to convert uppercase letters into lowercase and vice versa using passing pointer to a function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to read an array of n integers using dynamic memory allocation and display the largest and smallest element.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to read an array of N elements and display the array in descending order using pointer.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a program to read a matrix of m×n order and display the sum of main diagonal elements using function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to read marks of 48 students in a class and display the second highest marks.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to read a matrix of order m×n, transpose it and display the result using the concept of pointer.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to sort n numbers in ascending order using a function and also display minimum, maximum, second largest and second smallest elements.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to sort n numbers in descending order and also display minimum, maximum, second largest and second smallest elements.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to find the sum of elements of an array.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to read an array of n elements and display the elements in reverse order using function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to find the sum of elements of a square matrix of order n.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP that reads a matrix and displays the transpose matrix using the concept of function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to read and display a string.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to sort a string in alphabetical order.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to sort n number of strings in alphabetical order.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a program that reads two matrices of order m×n and p×q. Find their product if possible and display them.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "WAP to reverse a string without using string handling function.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a program to accept 10 numbers and sort them with use of pointer.", type: "code" },
+  { chapter: "Chapter 6: Array, String and Pointer", q: "Write a program to read 10 numbers and sort them in ascending order using pointer.", type: "code" },
+
+  { chapter: "Chapter 7: User-Defined Functions", q: "What are the different types of functions available in C? What do you mean by pass by value and pass by reference?", type: "theory" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Difference between iteration and recursive function. Give example.", type: "theory" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "What is a function with its syntax? Explain actual and formal parameters with example.", type: "theory" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Difference between the methods of passing argument to function with example. What are advantages and disadvantages?", type: "theory" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "What is a recursive function? Write a program in C to allow a user to enter an integer number interactively and display its factorial value.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "What is the difference between function declaration and function definition? WAP to swap the value of two variables using pass by value and pass by reference.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "WAP to convert a decimal number into binary using function.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Explain the significance of user defined functions with example.", type: "theory" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "WAP to check a given number is Armstrong or not using recursive function.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Write a program to add three given numbers using function.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Write a program to calculate the tax of n given number of employees. Use a separate function to calculate the tax. Tax is 20% of basic if basic is less than 9000, otherwise tax is 25% of basic.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Write a program to check a number is prime or not using function.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "WAP to calculate the HCF and LCM of two numbers.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Write a function to calculate the factorial of a number using recursive function.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Write a function range() which will take values of A and B as parameters and display total numbers divisible by 3 in the range A to B.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Write a function which will take a year as argument and find whether that year is a leap year or not.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "WAP to calculate the sum of Fibonacci series up to n terms using function.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "WAP to calculate the sum of Fibonacci series using recursive function.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Define recursive function. Difference between call by value and call by reference with program of each.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Write a recursive function to generate Fibonacci series up to N terms.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "WAP to calculate the HCF and LCM of two numbers using function with argument and return type.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Write a program to calculate sum of first N natural numbers using recursive function.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "What are local and global variables? Determine what would be the output of the following:\nint i = 1;\nprintf(\"i=%d i=%d i=%d\", i, i++, ++i);", type: "output" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Write a program to print \"Hello World\" in the main function and \"Welcome To C\" in another function.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "Create a function add() which will calculate the sum of the array elements passed as parameters to it.", type: "code" },
+  { chapter: "Chapter 7: User-Defined Functions", q: "WAP to check a number is prime or not.", type: "code" },
+
+  { chapter: "Chapter 8: Structure", q: "What are structures? How and when are they declared in a C program?", type: "theory" },
+  { chapter: "Chapter 8: Structure", q: "WAP having a structure of student type. Make use of array of structure to input information of 20 students.", type: "code" },
+  { chapter: "Chapter 8: Structure", q: "How are structure members accessed using pointer? Distinguish between Structure and union.", type: "theory" },
+  { chapter: "Chapter 8: Structure", q: "WAP to read the name, roll no and marks of five students using array of structure. Display the name and roll no of those students whose mark is greater than 50.", type: "code" },
+  { chapter: "Chapter 8: Structure", q: "Write a program to read five different names, roll, address, percentage using array of structure and display the name who has scored the 3rd highest.", type: "code" },
+  { chapter: "Chapter 8: Structure", q: "Explain nested structure with example.", type: "theory" },
+  { chapter: "Chapter 8: Structure", q: "WAP to add two distances given in feet and inch format using structure.", type: "code" },
+  { chapter: "Chapter 8: Structure", q: "Create a structure named student that has name, roll and marks as members. Use structure to read and display records of 10 students. Create two functions: one to read information and another to display the information.", type: "code" },
+  { chapter: "Chapter 8: Structure", q: "Why should we prefer structure over array? What is the principal difference between structure and array?", type: "theory" },
+  { chapter: "Chapter 8: Structure", q: 'Explain about "Array within structure" along with a programming example.', type: "theory" },
+  { chapter: "Chapter 8: Structure", q: "Create a structure named student that has name, roll, marks and remarks as members. WAP using structure to read and display the data entered by the user.", type: "code" },
+  { chapter: "Chapter 8: Structure", q: "Create a structure named date that has day, month and year as its members. Include this structure as a member in another structure named employee which has name, id, salary as other members. Use this structure to read and display employee's name, id, DOB and salary.", type: "code" },
+  { chapter: "Chapter 8: Structure", q: "WAP to read records of 5 employees (name, address, salary, Id). Display the records of the top three employees with the highest salary.", type: "code" },
+  { chapter: "Chapter 8: Structure", q: "Create a user-defined array structure for student records having members physics, chemistry and mathematics. Feed the marks obtained by three students in each subject and calculate the total marks of each student.", type: "code" },
+  { chapter: "Chapter 8: Structure", q: "WAP which reads two complex numbers and then performs multiplication of these two using function with argument and return type.\nNote: (a1+ib1)*(a2+ib2) = (a1*a2 - b1*b2) + (a1*b2 + a2*b1)i", type: "code" },
+  { chapter: "Chapter 8: Structure", q: "WAP to convert the date in format YYYY/MM/DD in B.S. to A.D. using Structure and function.", type: "code" },
+  { chapter: "Chapter 8: Structure", q: "Write a program to read structure \"college\" having name, estDate and location where estDate is another structure having day, month and year as members. Display the records of 10 colleges.", type: "code" },
+
+  { chapter: "Chapter 9: Data File", q: "Why are fgets(), fputs(), fgetc(), and fputc() used?", type: "theory" },
+  { chapter: "Chapter 9: Data File", q: "Write a program to enter name, roll and mark of 10 students and store them in a file. Read and display the same from the file.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "What is a file and explain its importance in C programming?", type: "theory" },
+  { chapter: "Chapter 9: Data File", q: "What is a file? Write a program in C that allows a user to enter name, age, sex, address, number of songs recorded for duet singers using a file. The program should also have provision for editing the details of any singer.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "Describe any two file handling I/O functions. WAP to read the name, year of release and language of 3 movies. Save the movie data of all \"English\" language movies in a file.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "Write a program that reads a file named employee.txt that stores employee name, id, salary and displays the details of N employees in order of their salary.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "Explain in brief the various file opening modes. What is the significance of EOF?", type: "theory" },
+  { chapter: "Chapter 9: Data File", q: "WAP in C to read integers from user until user says \"no\". After reading the data, write all odd numbers to a file named odd.txt and all even numbers to a file named even.txt.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "WAP to copy content of one file source.txt to another destination.txt.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "WAP to read name and roll number of 48 students from user and store them in file named student.txt. If the file already contains data, your program should add new data at the end of file.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "WAP to read info from a file named data.txt and write its content to another file record.txt.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "List different types of standard I/O used in C. WAP to write name, address, roll no, and age of five students into a disk file named \"student.txt\".", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "WAP to read the details of book authors and write to a file until the user confirms to end. Then read and display the Nth record in the file, where N is read from the user. The data for authors must be represented by structures containing name, nationality and number of books published.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "What are binary and text files? WAP to read the following information for 96 students: student name, student roll no, marks obtained (out of 100). Record all data in \"ioe.txt\" file and program should print roll number and name of students who have obtained marks greater than or equal to 40.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "Write the syntax and use of the following:\nI. fwrite()\nII. fread()\nIII. rewind()\nIV. fseek()", type: "theory" },
+  { chapter: "Chapter 9: Data File", q: "Create a file named \"welcome.txt\" and write the text \"Welcome to Computer Programming\" to the file. Then open the file, read its content and display it on the screen.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "Create a structure named employee having members: empName, age and salary. Use this structure to read the name, age and salary of 5 employees and write the information to a file employee.txt and display on screen.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "Create a structure named student that has name, roll and marks as members. Use this structure to read and display records of 3 students. Write an array of structure to a file and then read its content to display on the screen.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "WAP to read name, age, semester and roll number of 100 students from user and store them in file named Student.txt. If the file already contains data, your program should add new data at the end of file.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "Write a program to read the following information for 96 students: student name, student roll no, marks obtained (out of 100). Record all data in \"exam.txt\" file and program should print roll number and name of students who have obtained marks greater than or equal to 24.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "Write a program to create a data file containing record of roll number, student name and total marks.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "Write a program that reads a line of text, stores it in a file, then prints the content of the file.", type: "code" },
+  { chapter: "Chapter 9: Data File", q: "Write a program to open a file in write mode, take input from the keyboard, and write it to the file.", type: "code" },
+
+  { chapter: "Chapter 10: Recent Trends in Programming", q: "Explain OOP with class, object and method.", type: "theory" },
+  { chapter: "Chapter 10: Recent Trends in Programming", q: "Difference between POP and OOP.", type: "theory" },
+  { chapter: "Chapter 10: Recent Trends in Programming", q: "Explain recent trends in computer programming.", type: "theory" },
+  { chapter: "Chapter 10: Recent Trends in Programming", q: "Write advantages and disadvantages of POP and OOP.", type: "theory" },
+  { chapter: "Chapter 10: Recent Trends in Programming", q: "Define OOP with Class, object, inheritance, polymorphism, encapsulation.", type: "theory" },
+  { chapter: "Chapter 10: Recent Trends in Programming", q: "Explain about the recent trends in Programming Languages.", type: "theory" },
+  { chapter: "Chapter 10: Recent Trends in Programming", q: "Define inheritance, polymorphism and encapsulation in OOP.", type: "theory" },
+];
+
+let done = new Set();
+let activeFilter = 'all';
+let searchQuery = '';
+let twoCol = false;
+
+function getChapters() {
+  const map = {};
+  data.forEach((q, i) => {
+    if (!map[q.chapter]) map[q.chapter] = [];
+    map[q.chapter].push({ ...q, id: i });
+  });
+  return map;
+}
+
+function filterQuestions(questions) {
+  return questions.filter(q => {
+    const matchFilter = activeFilter === 'all' || q.type === activeFilter;
+    const matchSearch = !searchQuery || q.q.toLowerCase().includes(searchQuery.toLowerCase()) || q.chapter.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchFilter && matchSearch;
+  });
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function tagLabel(t) {
+  return { code: '</> Code', theory: '◎ Theory', output: '▶ Output', mcq: '◇ MCQ' }[t] || t;
+}
+
+function render() {
+  const chapters = getChapters();
+  const chapterNames = Object.keys(chapters);
+
+  document.getElementById('total-count').textContent = data.length;
+  document.getElementById('done-count').textContent = done.size;
+  document.getElementById('chapter-count').textContent = chapterNames.length;
+
+  const pct = data.length ? Math.round((done.size / data.length) * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = pct + '% complete (' + done.size + '/' + data.length + ')';
+
+  document.getElementById('chapter-nav').innerHTML = chapterNames.map((ch, i) => {
+    const qs = filterQuestions(chapters[ch]);
+    return `<div class="chapter-nav-item" onclick="scrollToChapter('ch-${i}')">
+      <span class="chapter-nav-name">${escHtml(ch)}</span>
+      <span class="chapter-nav-count">${qs.length}</span>
+    </div>`;
+  }).join('');
+
+  let html = '';
+  let hasAny = false;
+
+  chapterNames.forEach((ch, i) => {
+    const qs = filterQuestions(chapters[ch]);
+    if (!qs.length) return;
+    hasAny = true;
+    const shortTitle = ch.replace(/^Chapter \d+: /, '');
+    html += `<div class="chapter-block" id="ch-${i}">
+      <div class="chapter-header">
+        <span class="chapter-num">CH ${String(i+1).padStart(2,'0')}</span>
+        <span class="chapter-title">${escHtml(shortTitle)}</span>
+        <span class="chapter-count-badge">${qs.length} question${qs.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="questions-grid ${twoCol ? 'two-col' : ''}">
+        ${qs.map((q, qi) => `
+          <div class="q-card ${done.has(q.id) ? 'done' : ''}" id="qcard-${q.id}">
+            <span class="q-num">Q${qi+1}</span>
+            <div class="q-body" onclick="toggleAnswerBox(${q.id}, event)">
+              <div class="q-text">${escHtml(q.q)}</div>
+              <div class="q-tags"><span class="q-tag ${q.type}">${tagLabel(q.type)}</span>${!done.has(q.id) ? '<span style="font-size:10px;color:var(--muted);margin-left:6px;">↓ click to answer</span>' : ''}</div>
+              <div class="q-answer-box" id="abox-${q.id}" onclick="event.stopPropagation()">
+                <div class="q-answer-hint">Write your answer below — AI will grade it</div>
+                <textarea class="q-textarea" id="ans-${q.id}" placeholder="Type your answer here..."></textarea>
+                <div class="q-answer-actions">
+                  <button class="q-submit-btn" id="btn-${q.id}" onclick="submitAnswer(${q.id})">✦ Submit for Grading</button>
+                  <span class="q-feedback" id="fb-${q.id}"></span>
+                </div>
+                <div class="q-hint-text" id="hint-${q.id}"></div>
+              </div>
+            </div>
+            <div class="q-check"><span class="q-check-inner">✓</span></div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('content').innerHTML = hasAny ? html :
+    `<div class="no-results"><div style="font-size:36px;margin-bottom:12px">◌</div><p>No questions match your search.</p></div>`;
+}
+
+function scrollToChapter(id) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+
+function toggleDone(id) {
+  if (done.has(id)) done.delete(id); else done.add(id);
+  saveProgress();
+  render();
+}
+
+function toggleAnswerBox(id, event) {
+  // Don't toggle if question is already done
+  const card = document.getElementById('qcard-' + id);
+  if (card && card.classList.contains('done')) return;
+
+  const box = document.getElementById('abox-' + id);
+  if (!box) return;
+  box.classList.toggle('open');
+
+  // Focus textarea when opening
+  if (box.classList.contains('open')) {
+    setTimeout(() => {
+      const ta = document.getElementById('ans-' + id);
+      if (ta) ta.focus();
+    }, 50);
+  }
+}
+
+async function submitAnswer(questionId) {
+  const btn = document.getElementById('btn-' + questionId);
+  const textarea = document.getElementById('ans-' + questionId);
+  const feedback = document.getElementById('fb-' + questionId);
+  const hint = document.getElementById('hint-' + questionId);
+
+  const answer = textarea ? textarea.value.trim() : '';
+  if (!answer) {
+    feedback.textContent = 'Please write an answer first.';
+    feedback.className = 'q-feedback incorrect';
+    return;
+  }
+
+  const questionObj = data[questionId];
+  if (!questionObj) return;
+
+  // Loading state
+  btn.disabled = true;
+  btn.textContent = '⏳ Grading...';
+  feedback.className = 'q-feedback';
+  hint.className = 'q-hint-text';
+
+  try {
+    const response = await fetch('/api/grade', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+  question: questionObj.q, 
+  answer: answer,
+  username: currentUser ? currentUser.username : null,
+  questionId: questionId
+})
+    });
+
+    if (!response.ok) throw new Error('Server error: ' + response.status);
+
+    const result = await response.json();
+
+    if (result.status === 'Correct') {
+      // Mark as done
+      done.add(questionId);
+      saveProgress();
+
+      // Update UI directly without full re-render to preserve answer box state
+      const card = document.getElementById('qcard-' + questionId);
+      if (card) {
+        card.classList.add('done');
+        const check = card.querySelector('.q-check');
+        if (check) { check.style.background = '#47c8ff'; check.style.borderColor = '#47c8ff'; }
+        const checkInner = card.querySelector('.q-check-inner');
+        if (checkInner) checkInner.style.opacity = '1';
+      }
+
+      feedback.textContent = '✓ Correct! Great work.';
+      feedback.className = 'q-feedback correct';
+      btn.textContent = '✦ Correct!';
+      btn.disabled = true;
+
+      // Update stats
+      document.getElementById('done-count').textContent = done.size;
+      const pct = Math.round((done.size / data.length) * 100);
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-text').textContent = pct + '% complete (' + done.size + '/' + data.length + ')';
+
+    } else {
+      // Incorrect
+      feedback.textContent = '✗ Not quite right. Try again.';
+      feedback.className = 'q-feedback incorrect';
+      btn.disabled = false;
+      btn.textContent = '✦ Submit for Grading';
+
+      // Show hint if provided
+      if (result.hint) {
+        hint.textContent = '💡 Hint: ' + result.hint;
+        hint.className = 'q-hint-text show';
+      }
+    }
+
+  } catch (err) {
+    feedback.textContent = '⚠ Could not reach grading server. Check your connection.';
+    feedback.className = 'q-feedback incorrect';
+    btn.disabled = false;
+    btn.textContent = '✦ Submit for Grading';
+    console.error('Grading error:', err);
+  }
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+document.getElementById('search-input').addEventListener('input', e => { searchQuery = e.target.value; render(); });
+
+document.getElementById('view-1col').addEventListener('click', () => {
+  twoCol = false;
+  document.getElementById('view-1col').classList.add('active');
+  document.getElementById('view-2col').classList.remove('active');
+  render();
+});
+document.getElementById('view-2col').addEventListener('click', () => {
+  twoCol = true;
+  document.getElementById('view-2col').classList.add('active');
+  document.getElementById('view-1col').classList.remove('active');
+  render();
+});
+
+function openModal() {
+  const chapters = Object.keys(getChapters());
+  document.getElementById('modal-chapter').innerHTML = chapters.map(c => `<option>${escHtml(c)}</option>`).join('') + `<option value="__new__">+ New Chapter...</option>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+function addQuestion() {
+  let chapter = document.getElementById('modal-chapter').value;
+  const q = document.getElementById('modal-question').value.trim();
+  const type = document.getElementById('modal-type').value;
+  if (!q) return;
+  if (chapter === '__new__') { chapter = prompt('Enter new chapter name:'); if (!chapter) return; }
+  data.push({ chapter, q, type });
+  document.getElementById('modal-question').value = '';
+  closeModal();
+  render();
+}
+
+document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+// Start at auth screen — don't render questions until logged in
+document.getElementById('auth-screen').style.display = 'flex';
+document.getElementById('app').style.display = 'none';
+
+// Allow pressing Enter in auth fields
+document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-username').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>
