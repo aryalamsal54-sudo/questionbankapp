@@ -1,0 +1,13 @@
+{
+  "name": "question-bank",
+  "version": "1.0.0",
+  "description": "Student question bank with AI grading",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "postgres": "^3.4.4"
+  }
+}
