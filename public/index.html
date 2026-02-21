@@ -1200,8 +1200,8 @@ document.getElementById('login-username').addEventListener('keydown', e => { if 
   function rnd(a, b) { return a + Math.random() * (b - a); }
 
   function burst(x, y) {
-    for (var i = 0; i < 130; i++) {
-      var angle = (Math.PI * 2 / 130) * i + rnd(-0.25, 0.25);
+    for (var i = 0; i < 300; i++) {
+      var angle = (Math.PI * 2 / 300) * i + rnd(-0.25, 0.25);
       var speed = rnd(3, 17);
       particles.push({
         x: x, y: y,
@@ -1217,7 +1217,7 @@ document.getElementById('login-username').addEventListener('keydown', e => { if 
         grav: rnd(0.25, 0.5)
       });
     }
-    for (var j = 0; j < 28; j++) {
+    for (var j = 0; j < 80; j++) {
       var a2 = rnd(-Math.PI * 0.85, -Math.PI * 0.15);
       var s2 = rnd(7, 20);
       particles.push({
@@ -1299,10 +1299,23 @@ document.getElementById('login-username').addEventListener('keydown', e => { if 
     document.body.appendChild(popup);
     setTimeout(function() { popup.remove(); }, 1400);
 
-    // Triple particle burst
+    // MASSIVE barrage — 15 bursts timed across the screen
+    var W = window.innerWidth, H = window.innerHeight;
     burst(x, y);
-    setTimeout(function() { burst(x + rnd(-50, 50), y + rnd(-35, 35)); }, 110);
-    setTimeout(function() { burst(x + rnd(-70, 70), y + rnd(-45, 45)); }, 240);
+    setTimeout(function() { burst(x + rnd(-80,80), y + rnd(-50,50)); }, 60);
+    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.5)); }, 120);
+    setTimeout(function() { burst(x + rnd(-120,120), y + rnd(-80,80)); }, 180);
+    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.5)); }, 240);
+    setTimeout(function() { burst(x + rnd(-150,150), y + rnd(-100,100)); }, 300);
+    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.6)); }, 360);
+    setTimeout(function() { burst(x + rnd(-180,180), y + rnd(-120,120)); }, 420);
+    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.5)); }, 480);
+    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.6)); }, 540);
+    setTimeout(function() { burst(x + rnd(-200,200), y + rnd(-140,140)); }, 600);
+    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.5)); }, 680);
+    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.6)); }, 760);
+    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.5)); }, 860);
+    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.6)); }, 980);
   };
 })();
 
