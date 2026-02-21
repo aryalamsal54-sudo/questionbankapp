@@ -234,66 +234,9 @@
   .q-feedback.incorrect { display: block; background: rgba(255,92,135,0.1); border: 1px solid rgba(255,92,135,0.25); color: #ff5c87; }
   .q-hint-text { font-size: 12px; padding: 8px 12px; border-radius: 7px; display: none; background: rgba(180,127,255,0.1); border: 1px solid rgba(180,127,255,0.25); color: #b47fff; font-style: italic; margin-top: 8px; }
   .q-hint-text.show { display: block; }
-  .q-card.done .q-body { cursor: default; }
-  /* ── CORRECT ANSWER BLAST ── */
-  #blast-canvas {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 99999;
-    width: 100%;
-    height: 100%;
-  }
-  .correct-flash {
-    animation: correctFlash 0.5s ease forwards;
-  }
-  @keyframes correctFlash {
-    0%   { box-shadow: 0 0 0px 0px rgba(71,200,255,0); }
-    40%  { box-shadow: 0 0 40px 12px rgba(71,200,255,0.55), 0 0 80px 24px rgba(232,255,71,0.3); }
-    100% { box-shadow: 0 0 0px 0px rgba(71,200,255,0); }
-  }
-  .correct-stamp {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    z-index: 99998;
-    font-size: 90px;
-    pointer-events: none;
-    animation: stampIn 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    color: #47c8ff;
-    filter: drop-shadow(0 0 24px #47c8ff) drop-shadow(0 0 60px #e8ff47);
-  }
-  @keyframes stampIn {
-    0%   { transform: translate(-50%, -50%) scale(0) rotate(-20deg); opacity: 0; }
-    55%  { transform: translate(-50%, -50%) scale(1.25) rotate(6deg); opacity: 1; }
-    75%  { transform: translate(-50%, -50%) scale(0.92) rotate(-3deg); opacity: 1; }
-    88%  { transform: translate(-50%, -50%) scale(1.05) rotate(1deg); opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0; }
-  }
-  .score-popup {
-    position: fixed;
-    pointer-events: none;
-    z-index: 99998;
-    font-family: 'Inter', sans-serif;
-    font-size: 20px;
-    font-weight: 800;
-    color: #e8ff47;
-    letter-spacing: -0.02em;
-    text-shadow: 0 0 20px rgba(232,255,71,0.9);
-    animation: scoreFloat 1.3s ease forwards;
-    white-space: nowrap;
-  }
-  @keyframes scoreFloat {
-    0%   { opacity: 0; transform: translateY(0px) scale(0.6); }
-    15%  { opacity: 1; transform: translateY(-15px) scale(1.15); }
-    75%  { opacity: 1; transform: translateY(-75px) scale(1); }
-    100% { opacity: 0; transform: translateY(-105px) scale(0.85); }
-  }
-</style>
+  .q-card.done .q-body { cursor: default; }</style>
 </head>
 <body>
-<canvas id="blast-canvas"></canvas>
 
 <!-- ── AUTH SCREEN ── -->
 <div class="auth-screen" id="auth-screen">
@@ -1094,7 +1037,6 @@ async function submitAnswer(questionId) {
         if (check) { check.style.background = '#47c8ff'; check.style.borderColor = '#47c8ff'; }
         const checkInner = card.querySelector('.q-check-inner');
         if (checkInner) checkInner.style.opacity = '1';
-        triggerBlast(card);
       }
 
       feedback.textContent = '✓ Correct! Great work.';
@@ -1185,139 +1127,6 @@ document.getElementById('app').style.display = 'none';
 document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 document.getElementById('login-username').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
-// ── BLAST ANIMATION ENGINE ────────────────────────────────────────
-(function() {
-  var canvas = document.getElementById('blast-canvas');
-  var ctx = canvas.getContext('2d');
-  var particles = [];
-  var raf = null;
-  var COLORS = ['#e8ff47','#47c8ff','#ff5c87','#b47fff','#ffffff','#ffb347','#47ffb3'];
-
-  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-  resize();
-  window.addEventListener('resize', resize);
-
-  function rnd(a, b) { return a + Math.random() * (b - a); }
-
-  function burst(x, y) {
-    for (var i = 0; i < 300; i++) {
-      var angle = (Math.PI * 2 / 300) * i + rnd(-0.25, 0.25);
-      var speed = rnd(3, 17);
-      particles.push({
-        x: x, y: y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - rnd(1, 5),
-        size: rnd(4, 12),
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        shape: Math.random() < 0.4 ? 0 : Math.random() < 0.6 ? 1 : 2,
-        life: 1,
-        decay: rnd(0.012, 0.03),
-        rot: rnd(0, Math.PI * 2),
-        rotV: rnd(-0.18, 0.18),
-        grav: rnd(0.25, 0.5)
-      });
-    }
-    for (var j = 0; j < 80; j++) {
-      var a2 = rnd(-Math.PI * 0.85, -Math.PI * 0.15);
-      var s2 = rnd(7, 20);
-      particles.push({
-        x: x, y: y,
-        vx: Math.cos(a2) * s2, vy: Math.sin(a2) * s2,
-        size: rnd(2, 5),
-        color: Math.random() < 0.5 ? '#e8ff47' : '#ffffff',
-        shape: 0, life: 1, decay: rnd(0.018, 0.036),
-        rot: 0, rotV: 0, grav: rnd(0.3, 0.55)
-      });
-    }
-    if (!raf) raf = requestAnimationFrame(loop);
-  }
-
-  function star(ctx, x, y, r) {
-    var inner = r * 0.4;
-    ctx.beginPath();
-    for (var i = 0; i < 10; i++) {
-      var rad = i % 2 === 0 ? r : inner;
-      var a = (Math.PI / 5) * i - Math.PI / 2;
-      i === 0 ? ctx.moveTo(x + rad * Math.cos(a), y + rad * Math.sin(a))
-              : ctx.lineTo(x + rad * Math.cos(a), y + rad * Math.sin(a));
-    }
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  function loop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles = particles.filter(function(p) { return p.life > 0; });
-    for (var i = 0; i < particles.length; i++) {
-      var p = particles[i];
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, p.life);
-      ctx.fillStyle = p.color;
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = p.color;
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot);
-      if (p.shape === 0) {
-        ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2); ctx.fill();
-      } else if (p.shape === 1) {
-        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
-      } else {
-        star(ctx, 0, 0, p.size / 2);
-      }
-      ctx.restore();
-      p.x += p.vx; p.y += p.vy;
-      p.vy += p.grav; p.vx *= 0.98;
-      p.rot += p.rotV; p.life -= p.decay;
-    }
-    if (particles.length > 0) { raf = requestAnimationFrame(loop); }
-    else { ctx.clearRect(0, 0, canvas.width, canvas.height); raf = null; }
-  }
-
-  window.triggerBlast = function(cardEl) {
-    var rect = cardEl.getBoundingClientRect();
-    var x = rect.left + rect.width / 2;
-    var y = rect.top + rect.height / 2;
-
-    // Card flash
-    cardEl.classList.add('correct-flash');
-    setTimeout(function() { cardEl.classList.remove('correct-flash'); }, 600);
-
-    // Stamp
-    var stamp = document.createElement('div');
-    stamp.className = 'correct-stamp';
-    stamp.textContent = '✓';
-    document.body.appendChild(stamp);
-    setTimeout(function() { stamp.remove(); }, 950);
-
-    // Popup
-    var msgs = ['CORRECT! 🔥', 'NAILED IT!', 'BOOM! ✦', 'NICE ONE!', '+1 ⚡'];
-    var popup = document.createElement('div');
-    popup.className = 'score-popup';
-    popup.textContent = msgs[Math.floor(Math.random() * msgs.length)];
-    popup.style.left = (x - 55) + 'px';
-    popup.style.top  = (y - 20) + 'px';
-    document.body.appendChild(popup);
-    setTimeout(function() { popup.remove(); }, 1400);
-
-    // MASSIVE barrage — 15 bursts timed across the screen
-    var W = window.innerWidth, H = window.innerHeight;
-    burst(x, y);
-    setTimeout(function() { burst(x + rnd(-80,80), y + rnd(-50,50)); }, 60);
-    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.5)); }, 120);
-    setTimeout(function() { burst(x + rnd(-120,120), y + rnd(-80,80)); }, 180);
-    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.5)); }, 240);
-    setTimeout(function() { burst(x + rnd(-150,150), y + rnd(-100,100)); }, 300);
-    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.6)); }, 360);
-    setTimeout(function() { burst(x + rnd(-180,180), y + rnd(-120,120)); }, 420);
-    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.5)); }, 480);
-    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.6)); }, 540);
-    setTimeout(function() { burst(x + rnd(-200,200), y + rnd(-140,140)); }, 600);
-    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.5)); }, 680);
-    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.6)); }, 760);
-    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.5)); }, 860);
-    setTimeout(function() { burst(rnd(W*0.1, W*0.9), rnd(H*0.1, H*0.6)); }, 980);
-  };
-})();
 
 </script>
 </body>
